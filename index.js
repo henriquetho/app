@@ -1,4 +1,4 @@
-const { select, input } = require('@inquirer/prompts')
+const { select, input, checkbox } = require('@inquirer/prompts')
 
 let meta = {
     value: 'Tomar 3L de água por dia',
@@ -18,6 +18,49 @@ const cadatrarMeta = async () => {
     metas.push({ value: meta, checked: false })
 }
 
+const listarMetas = async () => {
+    const respostas = await checkbox({
+        message: "Use as setas para mudar de meta, o espaço para marcar ou desmarcar e o enter para finalizar essa etapa.",
+        choices: [...metas],
+        instructions: false
+    })
+    
+    if(respostas.length == 0) {
+        console.log("Nenhuma meta selecionada")
+        return
+    }
+
+    metas.forEach((m) => {
+        m.checked = false
+    })
+
+    respostas.forEach((resposta) => {
+        const meta = metas.find((m) => {
+            return m.value == resposta
+        })
+
+        meta.checked = true
+    })
+
+    console.log('Meta (s) marcadas como concluídas!')
+}
+
+const metasRealizadas = async () => {
+    const realizadas = metas.filter((meta) => {
+        return meta.checked
+    })
+
+    if(realizadas.length == 0) {
+        console.log("Não existe meta realizada :(")
+        return
+    }
+
+    await select({
+        message: "Metas realizadas",
+        choices: [...realizadas]
+    })
+}
+
 const start = async () => {
     
     while(true){
@@ -34,6 +77,10 @@ const start = async () => {
                     value: "listar"
                 },
                 {
+                    name: "Metas realizada",
+                    value: "realizadas"
+                },
+                {
                     name: "Sair",
                     value: "sair"
                 }
@@ -46,8 +93,10 @@ const start = async () => {
                 console.log(metas)
                 break
             case "listar":
-                console.log("Vamos listar")
+                await listarMetas()
                 break
+            case "realizadas":
+                await metasRealizadas()
             case "sair":
                 return
         }
